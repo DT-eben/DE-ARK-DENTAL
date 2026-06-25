@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — <%= site.name %></title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>:root { --accent: <%= site.accent %>; }</style>
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">Today</div>
+      <div class="topbar-right">
+        <a href="/" target="_blank" class="btn btn-outline btn-sm">View booking page</a>
+        <a href="/admin/notifications" class="topbar-bell">
+          Notifications
+          <% if (unreadNotifs > 0) { %><span class="count-badge" style="margin-left:6px;"><%= unreadNotifs %></span><% } %>
+        </a>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <% if (success && success.length > 0) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value"><%= stats.todayCount %></div>
+          <div class="stat-label">Today's bookings</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><%= stats.pendingCount %></div>
+          <div class="stat-label">Awaiting confirmation</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><%= stats.monthCount %></div>
+          <div class="stat-label">This month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><%= stats.totalCount %></div>
+          <div class="stat-label">All-time bookings</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;">
+        <div class="card card-flush">
+          <div style="padding:22px 24px;border-bottom:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center;">
+            <h3 class="page-title" style="font-size:17px;">Today's schedule</h3>
+            <a href="/admin/bookings?date=<%= today %>" class="btn btn-ghost btn-sm">See all</a>
+          </div>
+
+          <% if (todayAppointments.length === 0) { %>
+            <div class="empty-state">
+              <div class="empty-title">Nothing booked today</div>
+              <p class="empty-desc">New appointments will appear here as they come in.</p>
+            </div>
+          <% } else { %>
+            <table class="data-table">
+              <thead><tr><th>Client</th><th>Service</th><th>Time</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <% todayAppointments.forEach(appt => { %>
+                <tr>
+                  <td>
+                    <div class="cell-name"><%= appt.customerName %></div>
+                    <div class="cell-sub"><%= appt.customerPhone %></div>
+                  </td>
+                  <td><%= appt.service.name %></td>
+                  <td>
+                    <div class="cell-time"><%= formatTime12(appt.startTime) %></div>
+                    <div class="cell-time-end">until <%= formatTime12(appt.endTime) %></div>
+                  </td>
+                  <td><span class="pill pill-<%= appt.status %>"><%= appt.status %></span></td>
+                  <td>
+                    <% if (appt.status === 'pending') { %>
+                      <button class="btn btn-sm btn-outline status-btn" data-id="<%= appt._id %>" data-status="confirmed">Confirm</button>
+                    <% } else if (appt.status === 'confirmed') { %>
+                      <button class="btn btn-sm btn-ghost status-btn" data-id="<%= appt._id %>" data-status="completed">Mark done</button>
+                    <% } %>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:20px;">
+            <div class="eyebrow" style="margin-bottom:10px;">Your booking page</div>
+            <div style="background:var(--surface-sunk);border-radius:8px;padding:11px;font-size:12.5px;color:var(--accent-deep);word-break:break-all;margin-bottom:12px;font-weight:500;">
+              <%= req.protocol %>://<%= req.get('host') %>/
+            </div>
+            <button onclick="copyLink()" class="btn btn-outline btn-full btn-sm" id="copyBtn">Copy link</button>
+          </div>
+
+          <div class="card card-flush">
+            <div style="padding:18px 22px;border-bottom:1px solid var(--border-soft);">
+              <h3 class="page-title" style="font-size:14.5px;">Upcoming</h3>
+            </div>
+            <% if (upcomingAppointments.length === 0) { %>
+              <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Nothing else on the calendar yet.</div>
+            <% } else { %>
+              <% upcomingAppointments.forEach(appt => { %>
+                <div style="padding:14px 22px;border-bottom:1px solid var(--border-soft);">
+                  <div class="cell-name" style="font-size:13.5px;"><%= appt.customerName %></div>
+                  <div class="cell-sub"><%= appt.service.name %> · <%= appt.date %>, <%= formatTime12(appt.startTime) %></div>
+                  <span class="pill pill-<%= appt.status %>" style="margin-top:6px;"><%= appt.status %></span>
+                </div>
+              <% }) %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyLink() {
+  navigator.clipboard.writeText(window.location.origin + '/');
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = 'Copied';
+  setTimeout(() => btn.textContent = 'Copy link', 2000);
+}
+document.querySelectorAll('.status-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const res = await fetch(`/admin/bookings/${btn.dataset.id}/status`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ status: btn.dataset.status })
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff access — <%= site.name %></title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>:root { --accent: <%= site.accent %>; }</style>
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar"><div class="topbar-title">Staff access</div></div>
+
+    <div class="content-area">
+      <% if (success && success.length > 0) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+      <% if (error && error.length > 0) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
+
+      <div style="display:grid;grid-template-columns:1fr 360px;gap:24px;">
+        <div class="card card-flush">
+          <div style="padding:20px 24px;border-bottom:1px solid var(--border-soft);">
+            <h3 class="page-title" style="font-size:16px;">Who can log in</h3>
+          </div>
+          <% staffList.forEach(s => { %>
+            <div style="padding:16px 24px;border-bottom:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="cell-name"><%= s.name %><% if (s.isOwner) { %> <span class="pill pill-confirmed" style="margin-left:6px;">owner</span><% } %><% if (!s.isActive) { %> <span class="pill pill-cancelled" style="margin-left:6px;">disabled</span><% } %></div>
+                <div class="cell-sub"><%= s.email %></div>
+              </div>
+              <% if (!s.isOwner) { %>
+                <button class="btn btn-sm btn-ghost toggle-staff-btn" data-id="<%= s._id %>"><%= s.isActive ? 'Disable' : 'Enable' %></button>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+
+        <div class="card">
+          <h3 class="page-title" style="font-size:16px;margin-bottom:18px;">Add staff</h3>
+          <p style="font-size:12.5px;color:var(--muted);margin-bottom:18px;">They'll be able to see and manage all bookings, just like you.</p>
+          <form method="POST" action="/admin/staff/add">
+            <div class="form-group">
+              <label class="form-label">Full name</label>
+              <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email address</label>
+              <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Temporary password</label>
+              <input type="password" name="password" class="form-control" minlength="8" required>
+              <p class="form-hint">They can use this to log in right away. Min. 8 characters.</p>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Add staff member</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.toggle-staff-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const res = await fetch(`/admin/staff/${btn.dataset.id}/toggle`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) location.reload();
+    else if (data.message) alert(data.message);
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Couldn't complete booking</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>:root { --accent: <%= site.accent %>; }</style>
+</head>
+<body>
+
+<div class="confirm-shell">
+  <div class="confirm-card">
+    <div class="confirm-mark" style="background:var(--danger-tint);color:var(--danger);">!</div>
+    <h1 class="confirm-title">Couldn't complete that</h1>
+    <p style="color:var(--muted);margin-bottom:24px;"><%= message %></p>
+    <a href="/" class="btn btn-accent btn-full">Try again</a>
+  </div>
+</div>
+
+</body>
+</html>

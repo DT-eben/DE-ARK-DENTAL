@@ -1,0 +1,27 @@
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-name"><%= site.name %></div>
+    <div class="sidebar-meta">Signed in as <%= staff.name %></div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="/admin" class="nav-item <%= page === 'dashboard' ? 'active' : '' %>">Dashboard</a>
+    <a href="/admin/bookings" class="nav-item <%= page === 'bookings' ? 'active' : '' %>">Bookings</a>
+    <a href="/admin/notifications" class="nav-item <%= page === 'notifications' ? 'active' : '' %>">
+      Notifications
+      <% if (unreadNotifs > 0) { %><span class="count-badge notif-dot"><%= unreadNotifs %></span><% } %>
+    </a>
+
+    <div class="nav-section-label">Setup</div>
+    <a href="/admin/services" class="nav-item <%= page === 'services' ? 'active' : '' %>">Services</a>
+    <a href="/admin/hours" class="nav-item <%= page === 'hours' ? 'active' : '' %>">Business hours</a>
+    <% if (staff.isOwner) { %>
+      <a href="/admin/staff" class="nav-item <%= page === 'staff' ? 'active' : '' %>">Staff access</a>
+    <% } %>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <a href="/" target="_blank" class="sidebar-link-text">View booking page</a>
+    <a href="/admin/auth/logout" class="nav-item" style="margin-top:8px;">Log out</a>
+  </div>
+</aside>

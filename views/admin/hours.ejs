@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business hours — <%= site.name %></title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>:root { --accent: <%= site.accent %>; }</style>
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar"><div class="topbar-title">Business hours</div></div>
+
+    <div class="content-area">
+      <% if (success && success.length > 0) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+
+      <div class="card" style="max-width:640px;">
+        <p style="color:var(--muted);margin-bottom:22px;font-size:13.5px;">Clients can only book appointments during the hours marked open below.</p>
+
+        <form method="POST" action="/admin/hours">
+          <% hours.forEach(h => { %>
+            <div style="display:grid;grid-template-columns:120px 1fr auto 1fr;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--border-soft);">
+              <label style="display:flex;align-items:center;gap:9px;font-weight:500;font-size:13.5px;color:var(--ink-soft);">
+                <input type="checkbox" name="enable_<%= h.day %>" <%= h.isOpen ? 'checked' : '' %> onchange="toggleDay('<%= h.day %>', this.checked)" style="width:15px;height:15px;accent-color:var(--accent);">
+                <%= h.day %>
+              </label>
+              <input type="time" name="open_<%= h.day %>" id="open_<%= h.day %>" class="form-control" value="<%= h.open %>" style="<%= !h.isOpen ? 'opacity:0.4;' : '' %>">
+              <span style="color:var(--muted);font-size:12.5px;text-align:center;">to</span>
+              <input type="time" name="close_<%= h.day %>" id="close_<%= h.day %>" class="form-control" value="<%= h.close %>" style="<%= !h.isOpen ? 'opacity:0.4;' : '' %>">
+            </div>
+          <% }) %>
+
+          <button type="submit" class="btn btn-primary" style="margin-top:24px;">Save hours</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleDay(day, isOpen) {
+  document.getElementById('open_' + day).style.opacity = isOpen ? '1' : '0.4';
+  document.getElementById('close_' + day).style.opacity = isOpen ? '1' : '0.4';
+}
+</script>
+</body>
+</html>

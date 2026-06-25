@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment confirmed</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>:root { --accent: <%= site.accent %>; }</style>
+</head>
+<body>
+
+<div class="confirm-shell">
+  <div class="confirm-card">
+    <div class="confirm-mark">✓</div>
+    <h1 class="confirm-title">You're booked</h1>
+    <p style="color:var(--muted);">Thank you — your appointment with <%= site.name %> has been received.</p>
+
+    <div class="ref-tag"><%= appointment.refNumber %></div>
+
+    <div style="background:var(--surface-sunk);border-radius:10px;padding:18px 20px;margin:20px 0;text-align:left;">
+      <div class="summary-row"><span class="summary-label">Service</span><span class="summary-value"><%= appointment.service.name %></span></div>
+      <div class="summary-row"><span class="summary-label">Date</span><span class="summary-value"><%= formatDateDisplay(appointment.date) %></span></div>
+      <div class="summary-row"><span class="summary-label">Time</span><span class="summary-value"><%= formatTime12(appointment.startTime) %> – <%= formatTime12(appointment.endTime) %></span></div>
+      <div class="summary-row"><span class="summary-label">Status</span><span class="pill pill-pending">Pending confirmation</span></div>
+    </div>
+
+    <p style="font-size:13px;color:var(--muted);margin-bottom:24px;">
+      We'll confirm shortly. Keep your reference number handy if you need to follow up<% if (site.phone) { %> — you can reach us at <%= site.phone %><% } %>.
+    </p>
+
+    <a href="/" class="btn btn-outline btn-full">Book another appointment</a>
+  </div>
+</div>
+
+</body>
+</html>

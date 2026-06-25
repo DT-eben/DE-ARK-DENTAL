@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications — <%= site.name %></title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>:root { --accent: <%= site.accent %>; }</style>
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar"><div class="topbar-title">Notifications</div></div>
+
+    <div class="content-area">
+      <div class="card card-flush" style="max-width:640px;">
+        <% if (notifications.length === 0) { %>
+          <div class="empty-state">
+            <div class="empty-title">Nothing yet</div>
+            <p class="empty-desc">You'll see an alert here every time someone books an appointment.</p>
+          </div>
+        <% } else { %>
+          <% notifications.forEach(n => { %>
+            <div class="notif-row <%= !n.isRead ? 'unread' : '' %>">
+              <div class="notif-marker <%= n.isRead ? 'read' : '' %>"></div>
+              <div class="notif-text"><%= n.message %></div>
+              <div class="notif-time">
+                <%= new Date(n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) %><br>
+                <%= new Date(n.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in — <%= site.name %></title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>:root { --accent: <%= site.accent %>; }</style>
+</head>
+<body>
+
+<div class="auth-shell">
+  <div class="auth-box">
+    <div class="brand-mark">
+      <div class="name"><%= site.name %></div>
+      <div class="sub">Staff sign in</div>
+    </div>
+
+    <% if (error && error.length > 0) { %>
+      <div class="alert alert-error"><%= error[0] %></div>
+    <% } %>
+
+    <div class="card">
+      <form method="POST" action="/admin/auth/login">
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input type="email" name="email" class="form-control" value="<%= typeof email !== 'undefined' ? email : '' %>" required autofocus>
+        </div>
+        <div class="form-group" style="margin-bottom:26px;">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full btn-lg">Sign in</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

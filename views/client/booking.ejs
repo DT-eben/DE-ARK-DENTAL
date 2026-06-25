@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= site.name %><% if (site.tagline) { %> — <%= site.tagline %><% } %></title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>:root { --accent: <%= site.accent %>; }</style>
+</head>
+<body>
+
+<div class="booking-shell">
+  <header class="site-header">
+    <div>
+      <div class="site-name"><%= site.name %></div>
+      <% if (site.address || site.phone) { %>
+        <div class="site-meta"><%= site.address %><% if (site.address && site.phone) { %> · <% } %><%= site.phone %></div>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="booking-main">
+    <% if (services.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-title">Booking isn't open yet</div>
+        <p class="empty-desc">Please check back shortly, or contact us directly<% if (site.phone) { %> at <%= site.phone %><% } %>.</p>
+      </div>
+    <% } else { %>
+
+    <div class="booking-intro">
+      <h1>Book an appointment</h1>
+      <p><% if (site.tagline) { %><%= site.tagline %><% } else { %>Choose a service, pick a time that works for you, and we'll see you then.<% } %></p>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-seg active" id="seg-1"></div>
+      <div class="progress-seg" id="seg-2"></div>
+      <div class="progress-seg" id="seg-3"></div>
+    </div>
+    <div class="progress-labels" style="margin-top:-30px;margin-bottom:36px;">
+      <span class="progress-label current" id="lbl-1">Service</span>
+      <span class="progress-label" id="lbl-2">Time</span>
+      <span class="progress-label" id="lbl-3">Details</span>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="step-1" class="booking-step">
+      <div class="service-list">
+        <% services.forEach(s => { %>
+          <div class="service-row" data-id="<%= s._id %>" data-name="<%= s.name %>" data-duration="<%= s.duration %>" data-price="<%= s.price %>" onclick="selectService(this)">
+            <div>
+              <div class="service-row-name"><%= s.name %></div>
+              <div class="service-row-meta"><%= s.duration %> minutes<% if (s.description) { %> · <%= s.description %><% } %></div>
+            </div>
+            <% if (s.price > 0) { %><div class="service-row-price">GH₵ <%= s.price %></div><% } %>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="step-2" class="booking-step" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="dateInput" class="form-control" min="<%= today %>" value="<%= today %>" onchange="loadSlots()">
+      </div>
+      <div id="slotsContainer">
+        <p style="color:var(--muted);font-size:13px;">Select a date to see available times.</p>
+      </div>
+      <button class="btn btn-ghost" style="margin-top:20px;" onclick="goToStep(1)">Back</button>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="step-3" class="booking-step" style="display:none;">
+      <div class="booking-summary" id="summaryBox"></div>
+
+      <form id="bookingForm" method="POST" action="/book">
+        <input type="hidden" name="serviceId" id="f_serviceId">
+        <input type="hidden" name="date" id="f_date">
+        <input type="hidden" name="startTime" id="f_startTime">
+        <input type="hidden" name="endTime" id="f_endTime">
+
+        <div class="form-group">
+          <label class="form-label">Full name</label>
+          <input type="text" name="customerName" class="form-control" placeholder="Your full name" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone number</label>
+            <input type="text" name="customerPhone" class="form-control" placeholder="024 000 0000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="customerEmail" class="form-control" placeholder="you@email.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes <span style="color:var(--muted-soft);">(optional)</span></label>
+          <textarea name="notes" class="form-control" rows="2" placeholder="Anything we should know ahead of time"></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button type="button" class="btn btn-ghost" onclick="goToStep(2)">Back</button>
+          <button type="submit" class="btn btn-accent btn-full">Confirm appointment</button>
+        </div>
+      </form>
+    </div>
+
+    <% } %>
+  </main>
+</div>
+
+<script>
+let selected = { serviceId: null, serviceName: '', duration: 0, price: 0, date: null, start: null, end: null };
+
+function goToStep(step) {
+  document.querySelectorAll('.booking-step').forEach(el => el.style.display = 'none');
+  document.getElementById('step-' + step).style.display = 'block';
+
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('seg-' + i).className = i <= step ? (i < step ? 'progress-seg done' : 'progress-seg active') : 'progress-seg';
+    document.getElementById('lbl-' + i).className = i === step ? 'progress-label current' : 'progress-label';
+  }
+}
+
+function selectService(el) {
+  document.querySelectorAll('.service-row').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selected.serviceId = el.dataset.id;
+  selected.serviceName = el.dataset.name;
+  selected.duration = el.dataset.duration;
+  selected.price = el.dataset.price;
+  setTimeout(() => { goToStep(2); loadSlots(); }, 150);
+}
+
+async function loadSlots() {
+  const date = document.getElementById('dateInput').value;
+  selected.date = date;
+  const container = document.getElementById('slotsContainer');
+  container.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading available times…</p>';
+
+  try {
+    const res = await fetch(`/slots?date=${date}&serviceId=${selected.serviceId}`);
+    const data = await res.json();
+
+    if (data.closed) {
+      container.innerHTML = `<div class="alert alert-warning">Closed on ${data.dayName}s — please choose another date.</div>`;
+      return;
+    }
+    if (!data.slots || data.slots.length === 0) {
+      container.innerHTML = `<div class="alert alert-warning">No more availability on this date — please choose another date.</div>`;
+      return;
+    }
+    const availableSlots = data.slots.filter(s => s.available);
+    if (availableSlots.length === 0) {
+      container.innerHTML = `<div class="alert alert-warning">Fully booked on this date — please choose another date.</div>`;
+      return;
+    }
+
+    let html = '<div class="slot-grid">';
+    data.slots.forEach(s => {
+      html += `<button type="button" class="slot-btn ${!s.available ? 'unavailable' : ''}"
+        ${s.available ? `onclick="selectSlot('${s.start}', '${s.end}', this)"` : 'disabled'}>${s.label}</button>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = '<div class="alert alert-error">Couldn\'t load availability — please try again.</div>';
+  }
+}
+
+function selectSlot(start, end, el) {
+  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selected.start = start;
+  selected.end = end;
+
+  setTimeout(() => {
+    document.getElementById('f_serviceId').value = selected.serviceId;
+    document.getElementById('f_date').value = selected.date;
+    document.getElementById('f_startTime').value = selected.start;
+    document.getElementById('f_endTime').value = selected.end;
+
+    const dateDisplay = new Date(selected.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('summaryBox').innerHTML = `
+      <div class="summary-row"><span class="summary-label">Service</span><span class="summary-value">${selected.serviceName}</span></div>
+      <div class="summary-row"><span class="summary-label">Date</span><span class="summary-value">${dateDisplay}</span></div>
+      <div class="summary-row"><span class="summary-label">Time</span><span class="summary-value">${el.textContent}</span></div>
+      ${selected.price > 0 ? `<div class="summary-row"><span class="summary-label">Price</span><span class="summary-value">GH₵ ${selected.price}</span></div>` : ''}
+    `;
+    goToStep(3);
+  }, 150);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "bookly",
+  "version": "2.0.0",
+  "description": "Single-business appointment booking system",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "setup": "node setup.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "express-session": "^1.19.0",
+    "helmet": "^8.2.0",
+    "mongoose": "^9.7.1",
+    "nodemailer": "^9.0.1"
+  }
+}

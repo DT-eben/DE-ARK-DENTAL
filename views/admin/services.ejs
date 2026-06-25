@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services — <%= site.name %></title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>:root { --accent: <%= site.accent %>; }</style>
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar"><div class="topbar-title">Services</div></div>
+
+    <div class="content-area">
+      <% if (success && success.length > 0) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+
+      <div style="display:grid;grid-template-columns:1fr 360px;gap:24px;">
+        <div class="card card-flush">
+          <div style="padding:20px 24px;border-bottom:1px solid var(--border-soft);">
+            <h3 class="page-title" style="font-size:16px;">Your services</h3>
+          </div>
+
+          <% if (services.length === 0) { %>
+            <div class="empty-state">
+              <div class="empty-title">No services yet</div>
+              <p class="empty-desc">Add your first service to start accepting bookings.</p>
+            </div>
+          <% } else { %>
+            <% services.forEach(s => { %>
+              <div style="padding:16px 24px;border-bottom:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div class="cell-name"><%= s.name %><% if (!s.isActive) { %> <span class="pill pill-cancelled" style="margin-left:6px;">hidden</span><% } %></div>
+                  <div class="cell-sub"><%= s.duration %> min<% if (s.price > 0) { %> · GH₵ <%= s.price %><% } %><% if (s.description) { %> · <%= s.description %><% } %></div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-sm btn-ghost toggle-btn" data-id="<%= s._id %>"><%= s.isActive ? 'Hide' : 'Show' %></button>
+                  <button class="btn btn-sm btn-danger-text delete-btn" data-id="<%= s._id %>">Delete</button>
+                </div>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <div class="card">
+          <h3 class="page-title" style="font-size:16px;margin-bottom:18px;">Add a service</h3>
+          <form method="POST" action="/admin/services/add">
+            <div class="form-group">
+              <label class="form-label">Service name</label>
+              <input type="text" name="name" class="form-control" placeholder="e.g. Hair Braiding" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Duration (minutes)</label>
+                <input type="number" name="duration" class="form-control" placeholder="30" min="5" step="5" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Price (GH₵)</label>
+                <input type="number" name="price" class="form-control" placeholder="0" min="0" step="0.01">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description <span style="color:var(--muted-soft);">(optional)</span></label>
+              <textarea name="description" class="form-control" rows="2"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Add service</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.delete-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if (!confirm('Delete this service permanently?')) return;
+    const res = await fetch(`/admin/services/${btn.dataset.id}/delete`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) location.reload();
+  });
+});
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const res = await fetch(`/admin/services/${btn.dataset.id}/toggle`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) location.reload();
+  });
+});
+</script>
+</body>
+</html>
